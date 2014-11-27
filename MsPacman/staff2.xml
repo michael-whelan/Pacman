@@ -1,13 +1,48 @@
 <?xml version="1.0"?>
 <company>
-	<staff id="1001">
+	<states>
 		<currState>chase</currState>
-		<evt>toofar</evt>
-		<newState>wander</newState>
-	</staff>
-	<staff id="2001">
-		<currState>wander</currState>
-		<evt>close</evt>
+		<evt>toomany</evt>
+		<newState>blocky</newState>
+	</states>
+	<states>
+		<currState>chase</currState>
+		<evt>powerpill</evt>
+		<newState>frightened</newState>
+	</states>
+	<states>
+		<currState>blocky</currState>
+		<evt>powerpill</evt>
+		<newState>frightened</newState>
+	</states>
+	<states>
+		<currState>blocky</currState>
+		<evt>taken</evt>
+		<newState>blockx</newState>
+	</states>
+	<states>
+		<currState>blockx</currState>
+		<evt>taken</evt>
+		<newState>scatter</newState>
+	</states>
+	<states>
+		<currState>blockx</currState>
+		<evt>powerpill</evt>
+		<newState>frightened</newState>
+	</states>
+	<states>
+		<currState>scatter</currState>
+		<evt>powerpill</evt>
+		<newState>frightened</newState>
+	</states>
+	<states>
+		<currState>scatter</currState>
+		<evt>timecomplete</evt>
 		<newState>chase</newState>
-	</staff>
+	</states>
+	<states>
+		<currState>frightened</currState>
+		<evt>timecomplete</evt>
+		<newState>chase</newState>
+	</states>
 </company>
