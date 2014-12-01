@@ -21,9 +21,19 @@
 		<newState>blockx</newState>
 	</states>
 	<states>
+		<currState>blocky</currState>
+		<evt>near</evt>
+		<newState>chase</newState>
+	</states>
+	<states>
 		<currState>blockx</currState>
 		<evt>taken</evt>
 		<newState>scatter</newState>
+	</states>
+	<states>
+		<currState>blockx</currState>
+		<evt>near</evt>
+		<newState>chase</newState>
 	</states>
 	<states>
 		<currState>blockx</currState>
