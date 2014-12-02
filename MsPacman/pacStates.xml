@@ -47,6 +47,11 @@
 	</states>
 	<states>
 		<currState>scatter</currState>
+		<evt>near</evt>
+		<newState>chase</newState>
+	</states>
+	<states>
+		<currState>scatter</currState>
 		<evt>timecomplete</evt>
 		<newState>chase</newState>
 	</states>
