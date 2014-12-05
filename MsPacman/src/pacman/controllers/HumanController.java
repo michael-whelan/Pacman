@@ -1,6 +1,7 @@
 package pacman.controllers;
 
 import java.awt.event.KeyEvent;
+
 import pacman.game.Game;
 import pacman.game.Constants.MOVE;
 
@@ -29,6 +30,7 @@ public class HumanController extends Controller<MOVE>
 	    	case KeyEvent.VK_RIGHT: return MOVE.RIGHT;
 	    	case KeyEvent.VK_DOWN: 	return MOVE.DOWN;
 	    	case KeyEvent.VK_LEFT: 	return MOVE.LEFT;
+	    	//case KeyEvent.VK_F12: 	MyGhosts.fsm.LoadXML(); return MOVE.NEUTRAL;
 	    	default: 				return MOVE.NEUTRAL;
     	}
     }

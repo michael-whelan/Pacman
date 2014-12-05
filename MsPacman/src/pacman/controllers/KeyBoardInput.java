@@ -3,6 +3,8 @@ package pacman.controllers;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import pacman.entries.ghosts.MyGhosts;
+
 /*
  * A simple key adapter used by the HumanController to play the game.
  */
@@ -15,8 +17,10 @@ public class KeyBoardInput extends KeyAdapter
     	return key;
     }
 
-    public void keyPressed(KeyEvent e) 
-    {
+    public void keyPressed(KeyEvent e){
         key=e.getKeyCode();
+        if(key  == KeyEvent.VK_F12){
+        	MyGhosts.fsm.LoadXML();
+        }
     }
 }

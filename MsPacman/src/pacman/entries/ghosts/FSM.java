@@ -38,8 +38,9 @@ public class FSM {
 	
 	
 	public void LoadXML(){
-		 try {	 
-				File fXmlFile = new File("C:/Users/Michael/Documents/GitHub/Pacman/MsPacman/pacStates.xml");
+		System.out.println("FSM.LoadXML()");
+		 try {	 //get the file
+				File fXmlFile = new File("myData/pacStates.xml");
 				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 				DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 				doc = dBuilder.parse(fXmlFile);
@@ -55,14 +56,15 @@ public class FSM {
 				NodeList nList = doc.getElementsByTagName("states");
 			 
 				for (int temp = 0; temp < nList.getLength(); temp++) {
-			 
+			 //run through the nodes, each with a tag states, and run the following checks
 					Node nNode = nList.item(temp);
 					Element eElement = (Element) nNode;
 					if (eElement.getElementsByTagName("currState").item(0).getTextContent().equals(currState) 
 							&& eElement.getElementsByTagName("evt").item(0).getTextContent().equals(evt) ) {
 						String s = eElement.getElementsByTagName("newState").item(0).getTextContent(); 
-						if((s.equals("frightened"))||(s.equals("scatter"))||(s.equals("chase"))||(s.equals("blocky"))||(s.equals("blockx"))){
-							 return s;	
+						if((s.equals("scatter"))||(s.equals("chase"))||(s.equals("blocky"))||(s.equals("blockx"))){
+						//only return if its a valid return, otherwise keep to the same state
+							return s;	
 						}
 						 return currState;
 					}

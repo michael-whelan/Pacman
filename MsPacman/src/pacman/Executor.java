@@ -25,7 +25,11 @@ import pacman.controllers.examples.StarterPacMan;
 import pacman.entries.ghosts.MyGhosts;
 import pacman.game.Game;
 import pacman.game.GameView;
+import pacman.game.Constants.MOVE;
 
+import java.awt.Component;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
 import static pacman.game.Constants.*;
 
 /**
@@ -46,11 +50,11 @@ public class Executor
 	{
 		Executor exec=new Executor();
 
-		/*
+		
 		//run multiple games in batch mode - good for testing.
-		int numTrials=10;
-		exec.runExperiment(new RandomPacMan(),new RandomGhosts(),numTrials);
-		 */
+		int numTrials=50;
+		exec.runExperiment(new StarterPacMan(),new MyGhosts(new KeyBoardInput()),numTrials);
+		 
 		
 		/*
 		//run a game in synchronous mode: game waits until controllers respond.
@@ -61,19 +65,19 @@ public class Executor
 		
 		//
 		//run the game in asynchronous mode.
-		boolean visual=true;
+		//boolean visual=true;
 //		exec.runGameTimed(new NearestPillPacMan(),new AggressiveGhosts(),visual);
-		//exec.runGameTimed(new StarterPacMan(),new MyGhosts(),visual);
-		exec.runGameTimed(new StarterPacMan(),new MyGhosts(),visual);	
+	//	exec.runGameTimed(new StarterPacMan(),new MyGhosts(new KeyBoardInput()),visual);
+		//exec.runGameTimed(new HumanController(new KeyBoardInput()),new MyGhosts(new KeyBoardInput()),visual);	
 		//
 		
-	/*	
+	
 		//run the game in asynchronous mode but advance as soon as both controllers are ready  - this is the mode of the competition.
-		//time limit of DELAY ms still applies.
+	/*	//time limit of DELAY ms still applies.
 		boolean visual=true;
 		boolean fixedTime=false;
-		exec.runGameTimedSpeedOptimised(new HumanController(new KeyBoardInput()),new MyGhosts(),fixedTime,visual);
-		*/
+		exec.runGameTimedSpeedOptimised(new StarterPacMan(),new MyGhosts(new KeyBoardInput()),fixedTime,visual);
+	*/
 		
 		/*
 		//run game in asynchronous mode and record it to file for replay at a later stage.
@@ -83,6 +87,7 @@ public class Executor
 		//exec.replayGame(fileName,visual);
 		 */
 	}
+
 	
     /**
      * For running multiple games without visuals. This is useful to get a good idea of how well a controller plays
@@ -167,6 +172,9 @@ public class Executor
 		
 		if(pacManController instanceof HumanController)
 			gv.getFrame().addKeyListener(((HumanController)pacManController).getKeyboardInput());
+		
+		
+		gv.getFrame().addKeyListener(MyGhosts.getKeyboardInput());
 				
 		new Thread(pacManController).start();
 		new Thread(ghostController).start();
@@ -186,6 +194,7 @@ public class Executor
 			}
 
 	        game.advanceGame(pacManController.getMove(),ghostController.getMove());	   
+	       
 	        
 	        if(visual)
 	        	gv.repaint();
@@ -194,7 +203,7 @@ public class Executor
 		pacManController.terminate();
 		ghostController.terminate();
 	}
-	
+    
     /**
      * Run the game in asynchronous mode but proceed as soon as both controllers replied. The time limit still applies so 
      * so the game will proceed after 40ms regardless of whether the controllers managed to calculate a turn.

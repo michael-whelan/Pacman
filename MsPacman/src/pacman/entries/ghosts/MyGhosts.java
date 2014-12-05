@@ -6,6 +6,7 @@ import java.util.Random;
 import javax.swing.text.Document;
 
 import pacman.controllers.Controller;
+import pacman.controllers.KeyBoardInput;
 import pacman.game.Constants;
 import pacman.game.Constants.DM;
 import pacman.game.Constants.GHOST;
@@ -32,18 +33,20 @@ public class MyGhosts extends Controller<EnumMap<GHOST,MOVE>>
 	private Random rnd=new Random();
 	private EnumMap<GHOST,MOVE> myMoves=new EnumMap<GHOST,MOVE>(GHOST.class);
 	private MOVE[] moves=MOVE.values();
-	private String blinkyState = "blocky";
-	private String inkyState = "blocky";
+	private String blinkyState = "chase";//initial setting of the states.
+	private String inkyState = "blockx";
 	private String sueState = "blocky";
-	private String pinkyState = "blocky";
+	private String pinkyState = "chase";
 	private boolean startTime;//dictates how long two ghosts can be in chase at once
 	private long chTimer;
 	private long scaTimer;
 	String myName;
 	final int centreX = 50;
 	final int centreY = 60;
-	//static org.w3c.dom.Document doc;
-	static FSM fsm;// = new FSM();
+	final int chaseTime = 5000;
+	final int scatterTime = 1000;
+	public static FSM fsm;// = new FSM();
+	static KeyBoardInput input;
 	
 	/* (non-Javadoc)
 	 * @see pacman.controllers.Controller#getMove(pacman.game.Game, long)
@@ -65,24 +68,29 @@ public class MyGhosts extends Controller<EnumMap<GHOST,MOVE>>
 	 */
 	
 	
-	public MyGhosts(){
+	public MyGhosts(KeyBoardInput input){
 		fsm = new FSM();
-		fsm.LoadXML();
+		fsm.LoadXML();//load the fsm at startup
+		MyGhosts.input = input;
 	}
 	
+    public static KeyBoardInput getKeyboardInput()//for reload of the FSM during play
+    {
+    	return input;
+    }
+
 	public EnumMap<GHOST,MOVE> getMove(Game game,long timeDue)
 	{		
 		myMoves.clear();
 		for(GHOST ghost : GHOST.values()){//for each ghost
-			myName = ghost.name().toString();
-			String myState = GetCurrentState(myName);
+			myName = ghost.name().toString();//get current ghosts name
+			String myState = GetCurrentState(myName);//get currents ghost state depending on name.
 			
-			
-			//myState = CheckOtherGhosts(game, ghost,myState,myName);
-			myState = CheckOtherGhosts(game, ghost,myState,myName);
+			myState = CheckOtherGhosts(game, ghost,myState,myName);//check if your state is already taken
 		
 			if(game.doesGhostRequireAction(ghost))//if it requires an action
-			{	if(myState.equals("chase")){
+			{//checks the current state of the ghost and calls a different function depending on the state
+				if(myState.equals("chase")){
 					myState = UpdateChase(game,ghost,myName,myState);
 				}
 				else if (myState.equals("blocky")){
@@ -91,11 +99,8 @@ public class MyGhosts extends Controller<EnumMap<GHOST,MOVE>>
 				else if (myState.equals("scatter")){
 					myState = UpdateScatter(game,ghost,myName,myState);
 				}
-				else if (myState.equals("blockx")){
+				else {//if (myState.equals("blockx")){
 					myState = UpdateBlockX(game,ghost,myName,myState);
-				}
-				else{ //frightened
-					myState = UpdateFrightened(game, ghost, myState);
 				}
 			}
 			SetState(myName,myState);
@@ -135,7 +140,7 @@ public class MyGhosts extends Controller<EnumMap<GHOST,MOVE>>
 	public String CheckOtherGhosts(Game game, GHOST ghost, String myState,String myName){
 		if(myName.equals("BLINKY")){//if my name is blinky
 			if(!CheckBlinky(myState)){//if someone else has the same state
-				myState = fsm.StateControl(myState,"taken");
+				myState = fsm.StateControl(myState,"taken");//state changes dictated by the fsm and current event
 				return myState;
 			}
 		}else if(myName.equals("INKY")){
@@ -157,7 +162,7 @@ public class MyGhosts extends Controller<EnumMap<GHOST,MOVE>>
 		}
 		return myState;
 	}
-	
+	//check group of ghosts for seeing if they have the same states>>start
 	public Boolean CheckInky(String myState){
 		if(blinkyState.equals( myState)||pinkyState.equals( myState)||sueState.equals( myState)){
 			return false;
@@ -185,17 +190,24 @@ public class MyGhosts extends Controller<EnumMap<GHOST,MOVE>>
 		}
 		return true;
 	}
-	
+	//>>end check group
+	//check the distance between current ghost and pacman
 	public Boolean CheckProximity(Game game, GHOST ghost){
-		if(game.getDistance(game.getGhostCurrentNodeIndex(ghost), game.getPacmanCurrentNodeIndex(),DM.MANHATTAN)<=40){
+		if(game.getDistance(game.getGhostCurrentNodeIndex(ghost), game.getPacmanCurrentNodeIndex(),DM.EUCLID)<=40){
 			return true;
 		}
 		return false;
 	}
-	
+	//The different updates depending on states >>start
 	public String UpdateChase(Game game, GHOST ghost,String myName, String myState){
-		myMoves.put(ghost,game.getApproximateNextMoveTowardsTarget(game.getGhostCurrentNodeIndex(ghost),
-				game.getPacmanCurrentNodeIndex(),game.getGhostLastMoveMade(ghost),DM.PATH));
+		if(myName.equals("BLINKY")){
+			myMoves.put(ghost,game.getApproximateNextMoveTowardsTarget(game.getGhostCurrentNodeIndex(ghost),
+				game.getPacmanCurrentNodeIndex(),game.getGhostLastMoveMade(ghost),DM.MANHATTAN));
+		}
+		else{
+			myMoves.put(ghost,game.getApproximateNextMoveTowardsTarget(game.getGhostCurrentNodeIndex(ghost),
+					game.getPacmanCurrentNodeIndex(),game.getGhostLastMoveMade(ghost),DM.EUCLID));
+		}
 		int counter= 0;
 		if(blinkyState.equals("chase")){
 			counter++;
@@ -214,7 +226,7 @@ public class MyGhosts extends Controller<EnumMap<GHOST,MOVE>>
 			chTimer = System.currentTimeMillis();
 		}
 		if(startTime){
-			if(System.currentTimeMillis() -chTimer >9000){
+			if(System.currentTimeMillis() -chTimer >chaseTime){
 				if(myState.equals("chase")){
 					myState = fsm.StateControl(myState, "toomany");
 				}
@@ -228,7 +240,7 @@ public class MyGhosts extends Controller<EnumMap<GHOST,MOVE>>
 	public String UpdateScatter(Game game, GHOST ghost,String myName, String myState){
 		myMoves.put(ghost,moves[rnd.nextInt(moves.length)]);
 		scaTimer = System.currentTimeMillis();
-		if(System.currentTimeMillis()- scaTimer>5000){
+		if(System.currentTimeMillis()- scaTimer>scatterTime){
 			myState = fsm.StateControl(myState,"timecomplete");
 			scaTimer = 0;
 		}
@@ -258,22 +270,11 @@ public class MyGhosts extends Controller<EnumMap<GHOST,MOVE>>
 			}
 		}
 	}
-	
+	//these block functions are used to match the different ghosts either X or Y
 	public String UpdateBlockY(Game game, GHOST ghost,String myName, String myState){
 
 		int pacmanX = game.getNodeXCood(game.getPacmanCurrentNodeIndex());
 		int ghostX = game.getNodeXCood(game.getGhostCurrentNodeIndex(ghost));
-		
-		if(PositionVSPacman("y",game).equals("less")){
-			if(game.getNodeYCood(game.getGhostCurrentNodeIndex(ghost))>centreY){
-				myMoves.put(ghost,moves[0]);//up
-			}
-		}
-		else if(PositionVSPacman("y",game).equals("more")){
-			if(game.getNodeYCood(game.getGhostCurrentNodeIndex(ghost))<centreY){
-				myMoves.put(ghost,moves[2]);//down
-			}
-		}
 		
 		if(ghostX<pacmanX){
 			myMoves.put(ghost,moves[1]);//right
@@ -290,17 +291,6 @@ public class MyGhosts extends Controller<EnumMap<GHOST,MOVE>>
 		int pacmanY = game.getNodeYCood(game.getPacmanCurrentNodeIndex());
 		int ghostY = game.getNodeYCood(game.getGhostCurrentNodeIndex(ghost));
 	
-		if(PositionVSPacman("x",game).equals("less")){
-			if(game.getNodeYCood(game.getGhostCurrentNodeIndex(ghost))>centreX){
-				myMoves.put(ghost,moves[3]);//left
-			}
-		}
-		if(PositionVSPacman("x",game).equals("more")){
-			if(game.getNodeYCood(game.getGhostCurrentNodeIndex(ghost))<centreX){
-				myMoves.put(ghost,moves[1]);//right
-			}
-		}
-		
 		if(ghostY<pacmanY){
 			myMoves.put(ghost,moves[2]);//down
 		}else if(ghostY>pacmanY){
@@ -311,32 +301,5 @@ public class MyGhosts extends Controller<EnumMap<GHOST,MOVE>>
 		}
 		return myState;
 	}
-	
-	public String UpdateFrightened(Game game, GHOST ghost,String myState){
-		myMoves.put(ghost,game.getApproximateNextMoveAwayFromTarget(game.getGhostCurrentNodeIndex(ghost),
-				game.getPacmanCurrentNodeIndex(),game.getGhostLastMoveMade(ghost),DM.PATH));
-		
-		
-		return myState;
-	}
-	
-	public Boolean CheckDanger(Game game, GHOST ghost){
-		if(game.getGhostEdibleTime(ghost)>0 || closeToPower(game)){
-			return true;
-		}
-		return false;
-			//myMoves.put(ghost,game.getApproximateNextMoveAwayFromTarget(currentIndex,pacmanIndex,game.getGhostLastMoveMade(ghost),DM.PATH));
-	}
-	 
-	private boolean closeToPower(Game game)
-	    {
-	    	int pacmanIndex=game.getPacmanCurrentNodeIndex();
-	    	int[] powerPillIndices=game.getActivePowerPillsIndices();
-	    	
-	    	for(int i=0;i<powerPillIndices.length;i++)
-	    		if(game.getShortestPathDistance(powerPillIndices[i],pacmanIndex)<PILL_PROXIMITY)
-	    			return true;
-
-	        return false;
-	    }
+    //>>end update group
 }
